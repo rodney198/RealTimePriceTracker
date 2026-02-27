@@ -1,4 +1,6 @@
+# =========================
 # Xcode
+# =========================
 DerivedData/
 build/
 *.pbxuser
@@ -11,28 +13,42 @@ build/
 !default.perspectivev3
 xcuserdata/
 *.xcuserstate
+*.xccheckout
+*.moved-aside
+*.xcworkspace
 
+# Keep workspace if using CocoaPods
+!*.xcworkspace/contents.xcworkspacedata
+!*.xcworkspace/xcshareddata/
+
+# =========================
 # Swift Package Manager
+# =========================
 .build/
 Packages/
 Package.resolved
 
+# =========================
 # CocoaPods
+# =========================
 Pods/
 
-# Carthage
-Carthage/Build/
-
+# =========================
 # Fastlane
+# =========================
 fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots
 fastlane/test_output
 
+# =========================
 # macOS
+# =========================
 .DS_Store
 
+# =========================
 # Archives
+# =========================
 *.xcarchive
 
 # Logs
