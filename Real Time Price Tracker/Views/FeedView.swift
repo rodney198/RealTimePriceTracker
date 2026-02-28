@@ -24,6 +24,29 @@ struct FeedView: View {
         .navigationDestination(for: String.self) { symbol in
             SymbolDetailView(symbol: symbol)
         }
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(priceFeed.isConnected ? Color.green : Color.gray)
+                        .frame(width: 8, height: 8)
+                    Text(priceFeed.isConnected ? "Connected" : "Disconnected")
+                        .font(.caption)
+                        .foregroundStyle(priceFeed.isConnected ? Color.green : Color.secondary)
+                }
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    if priceFeed.isFeedRunning {
+                        priceFeed.stopFeed()
+                    } else {
+                        priceFeed.startFeed()
+                    }
+                } label: {
+                    Text(priceFeed.isFeedRunning ? "Stop" : "Start")
+                }
+            }
+        }
     }
 }
 
