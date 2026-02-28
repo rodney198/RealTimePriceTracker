@@ -10,16 +10,11 @@ import SwiftUI
 // MARK: - SymbolDetailView
 
 struct SymbolDetailView: View {
-    let symbol: String
-    @EnvironmentObject private var priceFeed: PriceFeedService
+    @ObservedObject var viewModel: SymbolDetailViewModel
     @State private var flashColor: Color?
 
-    private var quote: StockQuote? {
-        priceFeed.quotes.first { $0.symbol == symbol }
-    }
-
     private var changeIndicator: (color: Color, symbol: String) {
-        guard let q = quote, let previous = q.previousPrice else { return (.primary, "−") }
+        guard let q = viewModel.quote, let previous = q.previousPrice else { return (.primary, "−") }
         if q.price > previous { return (.green, "↑") }
         if q.price < previous { return (.red, "↓") }
         return (.primary, "−")
@@ -27,7 +22,7 @@ struct SymbolDetailView: View {
 
     var body: some View {
         Group {
-            if let quote = quote {
+            if let quote = viewModel.quote {
                 VStack(alignment: .leading, spacing: 16) {
                     HStack(alignment: .firstTextBaseline) {
                         Text(formatPrice(quote.price))
@@ -59,7 +54,7 @@ struct SymbolDetailView: View {
                     .foregroundStyle(.secondary)
             }
         }
-        .navigationTitle(symbol)
+        .navigationTitle(viewModel.symbol)
         .navigationBarTitleDisplayMode(.inline)
     }
 
@@ -74,7 +69,6 @@ struct SymbolDetailView: View {
 
 #Preview {
     NavigationStack {
-        SymbolDetailView(symbol: "AAPL")
-            .environmentObject(PriceFeedService())
+        SymbolDetailView(viewModel: SymbolDetailViewModel(priceFeed: PriceFeedService(), symbol: "AAPL"))
     }
 }

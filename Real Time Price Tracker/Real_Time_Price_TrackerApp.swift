@@ -9,12 +9,25 @@ import SwiftUI
 
 @main
 struct Real_Time_Price_TrackerApp: App {
-    @StateObject private var priceFeed = PriceFeedService()
+    @StateObject private var appState = AppState()
 
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(priceFeed)
+                .environmentObject(appState.priceFeed)
+                .environmentObject(appState.feedViewModel)
         }
+    }
+}
+
+@MainActor
+private final class AppState: ObservableObject {
+    let priceFeed: PriceFeedService
+    let feedViewModel: FeedViewModel
+
+    init() {
+        let priceFeed = PriceFeedService()
+        self.priceFeed = priceFeed
+        self.feedViewModel = FeedViewModel(priceFeed: priceFeed)
     }
 }

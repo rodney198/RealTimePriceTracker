@@ -10,11 +10,12 @@ import SwiftUI
 // MARK: - Feed View
 
 struct FeedView: View {
-    @EnvironmentObject private var priceFeed: PriceFeedService
+    @EnvironmentObject private var viewModel: FeedViewModel
+    @Binding var preferredThemeRaw: String
 
     var body: some View {
         List {
-            ForEach(priceFeed.sortedQuotes) { quote in
+            ForEach(viewModel.sortedQuotes) { quote in
                 NavigationLink(value: quote.symbol) {
                     FeedRowView(quote: quote)
                 }
@@ -25,22 +26,30 @@ struct FeedView: View {
             ToolbarItem(placement: .topBarLeading) {
                 HStack(spacing: 6) {
                     Circle()
-                        .fill(priceFeed.isConnected ? Color.green : Color.red)
+                        .fill(viewModel.isConnected ? Color.green : Color.red)
                         .frame(width: 10, height: 10)
-                    Text(priceFeed.isConnected ? "Connected" : "Disconnected")
+                    Text(viewModel.isConnected ? "Connected" : "Disconnected")
                         .font(.caption)
-                        .foregroundStyle(priceFeed.isConnected ? Color.green : Color.secondary)
+                        .foregroundStyle(viewModel.isConnected ? Color.green : Color.secondary)
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    if priceFeed.isFeedRunning {
-                        priceFeed.stopFeed()
-                    } else {
-                        priceFeed.startFeed()
+                HStack(spacing: 12) {
+                    Picker("Theme", selection: $preferredThemeRaw) {
+                        ForEach(AppTheme.allCases, id: \.rawValue) { theme in
+                            Text(theme.displayName).tag(theme.rawValue)
+                        }
                     }
-                } label: {
-                    Text(priceFeed.isFeedRunning ? "Stop" : "Start")
+                    .pickerStyle(.menu)
+                    Button {
+                        if viewModel.isFeedRunning {
+                            viewModel.stopFeed()
+                        } else {
+                            viewModel.startFeed()
+                        }
+                    } label: {
+                        Text(viewModel.isFeedRunning ? "Stop" : "Start")
+                    }
                 }
             }
         }
@@ -103,7 +112,7 @@ struct FeedRowView: View {
 
 #Preview {
     NavigationStack {
-        FeedView()
-            .environmentObject(PriceFeedService())
+        FeedView(preferredThemeRaw: .constant(AppTheme.system.rawValue))
+            .environmentObject(FeedViewModel(priceFeed: PriceFeedService()))
     }
 }
