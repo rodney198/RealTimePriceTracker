@@ -105,8 +105,6 @@ The preferred appearance (System / Light / Dark) is stored with `@AppStorage(App
 ## Testing
 
 - **Unit tests** — In Xcode: Test navigator (⌘6) or **Product → Test** (⌘U). Covers `WebSocketPriceMessage` decoding, `StockQuote`, `PriceFeedService` (init, sortedQuotes, injectMessage, start/stop), `FeedViewModel`, and `SymbolDetailViewModel`.
-- **UI tests** — Launch the app, assert feed title "Prices", tap a symbol (e.g. AAPL) and assert the detail screen.
-
 ---
 
 ## Deep linking
