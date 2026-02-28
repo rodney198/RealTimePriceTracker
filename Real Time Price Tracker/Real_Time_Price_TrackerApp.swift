@@ -9,9 +9,12 @@ import SwiftUI
 
 @main
 struct Real_Time_Price_TrackerApp: App {
+    @StateObject private var priceFeed = PriceFeedService()
+
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(priceFeed)
         }
     }
 }

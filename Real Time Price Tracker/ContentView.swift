@@ -8,17 +8,16 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var priceFeed = PriceFeedService()
+    @EnvironmentObject private var priceFeed: PriceFeedService
 
     var body: some View {
         NavigationStack {
             FeedView()
-                .environmentObject(priceFeed)
-                .onAppear { priceFeed.startFeed() }
         }
     }
 }
 
 #Preview {
     ContentView()
+        .environmentObject(PriceFeedService())
 }
