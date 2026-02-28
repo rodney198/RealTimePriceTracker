@@ -19,6 +19,13 @@ struct ContentView: View {
                 }
         }
         .onAppear { priceFeed.startFeed() }
+        .onOpenURL { url in
+            guard url.scheme == "stocks", url.host == "symbol" else { return }
+            let symbol = url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+            if !symbol.isEmpty {
+                navigationPath.append(symbol)
+            }
+        }
     }
 }
 
