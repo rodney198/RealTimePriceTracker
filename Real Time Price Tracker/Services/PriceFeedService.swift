@@ -40,6 +40,8 @@ final class PriceFeedService: ObservableObject {
     private let url = URL(string: "wss://ws.postman-echo.com/raw")
     private let urlSession: URLSession
     private let priceVariationPercent: Double = 0.02
+    private let messageSubject = PassthroughSubject<WebSocketPriceMessage, Never>()
+    private var cancellables = Set<AnyCancellable>()
 
     init() {
         quotes = SymbolInfo.all.map { item in
@@ -52,6 +54,32 @@ final class PriceFeedService: ObservableObject {
         }
         urlSession = URLSession(configuration: .default, delegate: webSocketDelegate, delegateQueue: .main)
         webSocketDelegate.service = self
+        subscribeToMessageStream()
+    }
+
+    private func subscribeToMessageStream() {
+        messageSubject
+            .sink { [weak self] message in
+                guard let self = self else { return }
+                guard let index = self.quotes.firstIndex(where: { $0.symbol == message.symbol }) else { return }
+                let quote = self.quotes[index]
+                let newPrice = Decimal(message.price)
+                let previousPrice = quote.price
+                let direction: PriceChangeDirection = newPrice > previousPrice ? .up : (newPrice < previousPrice ? .down : .unchanged)
+                let updatedQuote = StockQuote(
+                    symbol: quote.symbol,
+                    price: newPrice,
+                    previousPrice: previousPrice,
+                    description: quote.description,
+                    lastChangeDirection: direction,
+                    lastChangeDate: Date()
+                )
+                var updated = self.quotes
+                updated[index] = updatedQuote
+                self.quotes = updated
+                debugPrint("[PriceFeed] value changed: \(message.symbol) \(previousPrice) → \(newPrice)")
+            }
+            .store(in: &cancellables)
     }
 
     //MARK: -Called by WebSocketDelegate when the WebSocket handshake completes.
@@ -135,15 +163,17 @@ final class PriceFeedService: ObservableObject {
         webSocketTask?.receive { [weak self] result in
             switch result {
             case .success(let message):
+                let data: Data?
                 switch message {
-                case .data(let data):
-                    self?.handleReceivedData(data)
-                case .string(let text):
-                    if let data = text.data(using: .utf8) {
-                        self?.handleReceivedData(data)
+                case .data(let d): data = d
+                case .string(let text): data = text.data(using: .utf8)
+                @unknown default: data = nil
+                }
+                if let data = data,
+                   let decoded = try? JSONDecoder().decode(WebSocketPriceMessage.self, from: data) {
+                    Task { @MainActor in
+                        self?.messageSubject.send(decoded)
                     }
-                @unknown default:
-                    break
                 }
             case .failure:
                 Task { @MainActor in
@@ -154,27 +184,6 @@ final class PriceFeedService: ObservableObject {
                 guard let self = self, self.webSocketTask != nil, self.isFeedRunning else { return }
                 self.receiveMessage()
             }
-        }
-    }
-
-    private nonisolated func handleReceivedData(_ data: Data) {
-        guard let decoded = try? JSONDecoder().decode(WebSocketPriceMessage.self, from: data) else { return }
-        let symbol = decoded.symbol
-        let newPrice = Decimal(decoded.price)
-        Task { @MainActor [weak self] in
-            guard let self = self else { return }
-            guard let index = self.quotes.firstIndex(where: { $0.symbol == symbol }) else { return }
-            var quote = self.quotes[index]
-            let previousPrice = quote.price
-            let direction: PriceChangeDirection = newPrice > previousPrice ? .up : (newPrice < previousPrice ? .down : .unchanged)
-            quote.previousPrice = previousPrice
-            quote.price = newPrice
-            quote.lastChangeDirection = direction
-            quote.lastChangeDate = Date()
-            var updated = self.quotes
-            updated[index] = quote
-            self.quotes = updated
-            debugPrint("[PriceFeed] value changed: \(symbol) \(previousPrice) → \(newPrice)")
         }
     }
 }

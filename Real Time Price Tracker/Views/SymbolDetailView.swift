@@ -12,6 +12,7 @@ import SwiftUI
 struct SymbolDetailView: View {
     let symbol: String
     @EnvironmentObject private var priceFeed: PriceFeedService
+    @State private var flashColor: Color?
 
     private var quote: StockQuote? {
         priceFeed.quotes.first { $0.symbol == symbol }
@@ -41,6 +42,18 @@ struct SymbolDetailView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding()
+                .background(flashColor ?? Color.clear)
+                .onChange(of: quote.lastChangeDate) { _, _ in
+                    guard let direction = quote.lastChangeDirection else { return }
+                    switch direction {
+                    case .up: flashColor = Color.green.opacity(0.2)
+                    case .down: flashColor = Color.red.opacity(0.2)
+                    case .unchanged: flashColor = nil
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                        flashColor = nil
+                    }
+                }
             } else {
                 Text("Symbol not found")
                     .foregroundStyle(.secondary)
