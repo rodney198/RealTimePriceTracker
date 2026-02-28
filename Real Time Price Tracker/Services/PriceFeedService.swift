@@ -82,6 +82,11 @@ final class PriceFeedService: ObservableObject {
             .store(in: &cancellables)
     }
 
+    /// Test-only: injects a message into the stream without using the WebSocket. Used by unit tests to exercise the message pipeline.
+    func injectMessageForTesting(_ message: WebSocketPriceMessage) {
+        messageSubject.send(message)
+    }
+
     //MARK: -Called by WebSocketDelegate when the WebSocket handshake completes.
     func webSocketDidOpen() {
         guard isFeedRunning else { return }
