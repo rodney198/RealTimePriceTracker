@@ -25,8 +25,8 @@ struct FeedView: View {
             ToolbarItem(placement: .topBarLeading) {
                 HStack(spacing: 6) {
                     Circle()
-                        .fill(priceFeed.isConnected ? Color.green : Color.gray)
-                        .frame(width: 8, height: 8)
+                        .fill(priceFeed.isConnected ? Color.green : Color.red)
+                        .frame(width: 10, height: 10)
                     Text(priceFeed.isConnected ? "Connected" : "Disconnected")
                         .font(.caption)
                         .foregroundStyle(priceFeed.isConnected ? Color.green : Color.secondary)
@@ -82,7 +82,7 @@ struct FeedRowView: View {
             case .down: flashColor = Color.red.opacity(0.2)
             case .unchanged: flashColor = nil
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                 flashColor = nil
             }
         }
