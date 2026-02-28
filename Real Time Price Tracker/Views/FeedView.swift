@@ -14,7 +14,7 @@ struct FeedView: View {
 
     var body: some View {
         List {
-            ForEach(priceFeed.quotes) { quote in
+            ForEach(priceFeed.sortedQuotes) { quote in
                 NavigationLink(value: quote.symbol) {
                     FeedRowView(quote: quote)
                 }
@@ -54,6 +54,14 @@ struct FeedView: View {
 
 struct FeedRowView: View {
     let quote: StockQuote
+    @State private var flashColor: Color?
+
+    private var changeIndicator: (color: Color, symbol: String) {
+        guard let previous = quote.previousPrice else { return (.primary, "−") }
+        if quote.price > previous { return (.green, "↑") }
+        if quote.price < previous { return (.red, "↓") }
+        return (.primary, "−")
+    }
 
     var body: some View {
         HStack {
@@ -64,8 +72,23 @@ struct FeedRowView: View {
 
             Text(formatPrice(quote.price))
                 .font(.subheadline.monospacedDigit())
+            Text(changeIndicator.symbol)
+                .foregroundStyle(changeIndicator.color)
+                .font(.subheadline.weight(.semibold))
         }
         .padding(.vertical, 4)
+        .listRowBackground(flashColor ?? Color.clear)
+        .onChange(of: quote.lastChangeDate) { _, _ in
+            guard let direction = quote.lastChangeDirection else { return }
+            switch direction {
+            case .up: flashColor = Color.green.opacity(0.2)
+            case .down: flashColor = Color.red.opacity(0.2)
+            case .unchanged: flashColor = nil
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                flashColor = nil
+            }
+        }
     }
 
     private func formatPrice(_ value: Decimal) -> String {

@@ -166,10 +166,11 @@ final class PriceFeedService: ObservableObject {
             guard let index = self.quotes.firstIndex(where: { $0.symbol == symbol }) else { return }
             var quote = self.quotes[index]
             let previousPrice = quote.price
+            let direction: PriceChangeDirection = newPrice > previousPrice ? .up : (newPrice < previousPrice ? .down : .unchanged)
             quote.previousPrice = previousPrice
             quote.price = newPrice
-            quote.lastChangeDirection = nil
-            quote.lastChangeDate = nil
+            quote.lastChangeDirection = direction
+            quote.lastChangeDate = Date()
             var updated = self.quotes
             updated[index] = quote
             self.quotes = updated
