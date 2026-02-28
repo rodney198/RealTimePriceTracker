@@ -9,11 +9,16 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject private var priceFeed: PriceFeedService
+    @State private var navigationPath = NavigationPath()
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             FeedView()
+                .navigationDestination(for: String.self) { symbol in
+                    SymbolDetailView(symbol: symbol)
+                }
         }
+        .onAppear { priceFeed.startFeed() }
     }
 }
 

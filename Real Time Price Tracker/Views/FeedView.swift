@@ -21,9 +21,6 @@ struct FeedView: View {
             }
         }
         .navigationTitle("Prices")
-        .navigationDestination(for: String.self) { symbol in
-            SymbolDetailView(symbol: symbol)
-        }
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 HStack(spacing: 6) {
