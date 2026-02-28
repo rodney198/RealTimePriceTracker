@@ -32,7 +32,7 @@ struct FeedView: View {
         }
         .navigationTitle("Prices")
         .navigationDestination(for: String.self) { symbol in
-            DetailView(symbol: symbol)
+            SymbolDetailView(symbol: symbol)
         }
     }
 }
@@ -64,23 +64,7 @@ struct FeedRowView: View {
     }
 }
 
-// MARK: - Detail View
 
-struct DetailView: View {
-    let symbol: String
-
-    var body: some View {
-        VStack(spacing: 16) {
-            Text(symbol)
-                .font(.largeTitle.bold())
-
-            Text(SymbolInfo.description(for: symbol))
-                .multilineTextAlignment(.center)
-                .padding()
-        }
-        .navigationTitle(symbol)
-    }
-}
 
 // MARK: - Preview
 
