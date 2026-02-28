@@ -21,21 +21,21 @@ struct FeedView: View {
                 }
             }
         }
-        .navigationTitle("Prices")
+        .navigationTitle(AppConstants.UI.feedTitle)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 HStack(spacing: 6) {
                     Circle()
                         .fill(viewModel.isConnected ? Color.green : Color.red)
                         .frame(width: 10, height: 10)
-                    Text(viewModel.isConnected ? "Connected" : "Disconnected")
+                    Text(viewModel.isConnected ? AppConstants.UI.connected : AppConstants.UI.disconnected)
                         .font(.caption)
                         .foregroundStyle(viewModel.isConnected ? Color.green : Color.secondary)
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
                 HStack(spacing: 12) {
-                    Picker("Theme", selection: $preferredThemeRaw) {
+                    Picker(AppConstants.UI.themePickerTitle, selection: $preferredThemeRaw) {
                         ForEach(AppTheme.allCases, id: \.rawValue) { theme in
                             Text(theme.displayName).tag(theme.rawValue)
                         }
@@ -48,7 +48,7 @@ struct FeedView: View {
                             viewModel.startFeed()
                         }
                     } label: {
-                        Text(viewModel.isFeedRunning ? "Stop" : "Start")
+                        Text(viewModel.isFeedRunning ? AppConstants.UI.stop : AppConstants.UI.start)
                     }
                 }
             }
@@ -63,10 +63,7 @@ struct FeedRowView: View {
     @State private var flashColor: Color?
 
     private var changeIndicator: (color: Color, symbol: String) {
-        guard let previous = quote.previousPrice else { return (.primary, "−") }
-        if quote.price > previous { return (.green, "↑") }
-        if quote.price < previous { return (.red, "↓") }
-        return (.primary, "−")
+        PriceFormatting.changeIndicator(for: quote)
     }
 
     var body: some View {
@@ -76,7 +73,7 @@ struct FeedRowView: View {
 
             Spacer()
 
-            Text(formatPrice(quote.price))
+            Text(PriceFormatting.formatPrice(quote.price))
                 .font(.subheadline.monospacedDigit())
             Text(changeIndicator.symbol)
                 .foregroundStyle(changeIndicator.color)
@@ -87,22 +84,14 @@ struct FeedRowView: View {
         .onChange(of: quote.lastChangeDate) { _, _ in
             guard let direction = quote.lastChangeDirection else { return }
             switch direction {
-            case .up: flashColor = Color.green.opacity(0.2)
-            case .down: flashColor = Color.red.opacity(0.2)
+            case .up: flashColor = Color.green.opacity(AppConstants.Flash.backgroundOpacity)
+            case .down: flashColor = Color.red.opacity(AppConstants.Flash.backgroundOpacity)
             case .unchanged: flashColor = nil
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + AppConstants.Flash.durationSeconds) {
                 flashColor = nil
             }
         }
-    }
-
-    private func formatPrice(_ value: Decimal) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.minimumFractionDigits = 2
-        formatter.maximumFractionDigits = 2
-        return formatter.string(from: value as NSDecimalNumber) ?? "\(value)"
     }
 }
 

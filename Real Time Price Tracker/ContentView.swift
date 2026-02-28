@@ -29,7 +29,7 @@ struct ContentView: View {
     @EnvironmentObject private var priceFeed: PriceFeedService
     @EnvironmentObject private var feedViewModel: FeedViewModel
     @State private var navigationPath = NavigationPath()
-    @AppStorage("preferredColorScheme") private var preferredThemeRaw: String = AppTheme.system.rawValue
+    @AppStorage(AppConstants.Theme.preferredColorSchemeStorageKey) private var preferredThemeRaw: String = AppTheme.system.rawValue
 
     private var resolvedScheme: ColorScheme? {
         AppTheme(rawValue: preferredThemeRaw)?.resolved
@@ -44,7 +44,7 @@ struct ContentView: View {
         }
         .preferredColorScheme(resolvedScheme)
         .onOpenURL { url in
-            guard url.scheme == "stocks", url.host == "symbol" else { return }
+            guard url.scheme == AppConstants.DeepLink.scheme, url.host == AppConstants.DeepLink.host else { return }
             let symbol = url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
             if !symbol.isEmpty {
                 navigationPath.append(symbol)

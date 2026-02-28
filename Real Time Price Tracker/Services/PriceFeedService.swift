@@ -37,9 +37,9 @@ final class PriceFeedService: ObservableObject {
     private var webSocketTask: URLSessionWebSocketTask?
     private var timer: Timer?
     private let webSocketDelegate = WebSocketDelegate()
-    private let url = URL(string: "wss://ws.postman-echo.com/raw")
+    private let url = URL(string: AppConstants.PriceFeed.webSocketURLString)
     private let urlSession: URLSession
-    private let priceVariationPercent: Double = 0.02
+    private let priceVariationPercent: Double = AppConstants.PriceFeed.priceVariationPercent
     private let messageSubject = PassthroughSubject<WebSocketPriceMessage, Never>()
     private var cancellables = Set<AnyCancellable>()
 
@@ -82,7 +82,7 @@ final class PriceFeedService: ObservableObject {
             .store(in: &cancellables)
     }
 
-    /// Test-only: injects a message into the stream without using the WebSocket. Used by unit tests to exercise the message pipeline.
+    //TODO: -Test-only: injects a message into the stream without using the WebSocket. Used by unit tests to exercise the message pipeline.
     func injectMessageForTesting(_ message: WebSocketPriceMessage) {
         messageSubject.send(message)
     }
@@ -92,7 +92,7 @@ final class PriceFeedService: ObservableObject {
         guard isFeedRunning else { return }
         isConnected = true
         debugPrint("[PriceFeed] WebSocket connected")
-        let t = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
+        let t = Timer.scheduledTimer(withTimeInterval: AppConstants.PriceFeed.timerInterval, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 debugPrint("Send Price Updates")
                 self?.sendPriceUpdates()
@@ -121,7 +121,7 @@ final class PriceFeedService: ObservableObject {
         guard webSocketTask == nil else { return }
         guard let url = url else { return }
         var request = URLRequest(url: url)
-        request.timeoutInterval = 10
+        request.timeoutInterval = AppConstants.PriceFeed.requestTimeout
         webSocketTask = urlSession.webSocketTask(with: request)
         webSocketTask?.resume()
         debugPrint("[PriceFeed] connecting to WebSocket...")

@@ -14,10 +14,8 @@ struct SymbolDetailView: View {
     @State private var flashColor: Color?
 
     private var changeIndicator: (color: Color, symbol: String) {
-        guard let q = viewModel.quote, let previous = q.previousPrice else { return (.primary, "−") }
-        if q.price > previous { return (.green, "↑") }
-        if q.price < previous { return (.red, "↓") }
-        return (.primary, "−")
+        guard let q = viewModel.quote else { return (.primary, "−") }
+        return PriceFormatting.changeIndicator(for: q)
     }
 
     var body: some View {
@@ -25,7 +23,7 @@ struct SymbolDetailView: View {
             if let quote = viewModel.quote {
                 VStack(alignment: .leading, spacing: 16) {
                     HStack(alignment: .firstTextBaseline) {
-                        Text(formatPrice(quote.price))
+                        Text(PriceFormatting.formatPrice(quote.price))
                             .font(.largeTitle.monospacedDigit())
                         Text(changeIndicator.symbol)
                             .foregroundStyle(changeIndicator.color)
@@ -41,29 +39,21 @@ struct SymbolDetailView: View {
                 .onChange(of: quote.lastChangeDate) { _, _ in
                     guard let direction = quote.lastChangeDirection else { return }
                     switch direction {
-                    case .up: flashColor = Color.green.opacity(0.2)
-                    case .down: flashColor = Color.red.opacity(0.2)
+                    case .up: flashColor = Color.green.opacity(AppConstants.Flash.backgroundOpacity)
+                    case .down: flashColor = Color.red.opacity(AppConstants.Flash.backgroundOpacity)
                     case .unchanged: flashColor = nil
                     }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + AppConstants.Flash.durationSeconds) {
                         flashColor = nil
                     }
                 }
             } else {
-                Text("Symbol not found")
+                Text(AppConstants.UI.symbolNotFound)
                     .foregroundStyle(.secondary)
             }
         }
         .navigationTitle(viewModel.symbol)
         .navigationBarTitleDisplayMode(.inline)
-    }
-
-    private func formatPrice(_ value: Decimal) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.minimumFractionDigits = 2
-        formatter.maximumFractionDigits = 2
-        return formatter.string(from: value as NSDecimalNumber) ?? "\(value)"
     }
 }
 
