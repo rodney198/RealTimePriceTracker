@@ -7,24 +7,14 @@
 
 import SwiftUI
 
-
-// MARK: - Model
-
-struct StaticQuote: Identifiable {
-    let id = UUID()
-    let symbol: String
-    let price: Decimal
-}
-
 // MARK: - Feed View
 
 struct FeedView: View {
-
-    private let quotes = SymbolInfo.staticQuotes
+    @EnvironmentObject private var priceFeed: PriceFeedService
 
     var body: some View {
         List {
-            ForEach(quotes) { quote in
+            ForEach(priceFeed.quotes) { quote in
                 NavigationLink(value: quote.symbol) {
                     FeedRowView(quote: quote)
                 }
@@ -40,7 +30,7 @@ struct FeedView: View {
 // MARK: - Row View
 
 struct FeedRowView: View {
-    let quote: StaticQuote
+    let quote: StockQuote
 
     var body: some View {
         HStack {
@@ -71,5 +61,6 @@ struct FeedRowView: View {
 #Preview {
     NavigationStack {
         FeedView()
+            .environmentObject(PriceFeedService())
     }
 }

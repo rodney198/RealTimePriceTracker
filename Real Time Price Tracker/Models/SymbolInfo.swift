@@ -51,12 +51,4 @@ enum SymbolInfo {
         return Decimal(basePrices[symbol] ?? 100)
     }
     
-    static var staticQuotes: [StaticQuote] {
-        all.map {
-            StaticQuote(
-                symbol: $0.symbol,
-                price: initialPrice(for: $0.symbol)
-            )
-        }
-    }
 }
